@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
     },
     serverComponentsExternalPackages: ['@prisma/client', 'prisma'], // Add Prisma to external packages
   },
+  
+  // Configure output file tracing for Prisma
+  outputFileTracing: true,
+  outputFileTracingRoot: process.cwd(),
+  outputFileTracingExcludes: {},
+  outputFileTracingIncludes: {
+    '/': ['prisma/**/*'], // Include Prisma files in the build output
+  },
 
   // Optional: Add headers for security and performance
   async headers() {
