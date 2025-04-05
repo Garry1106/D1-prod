@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Chatbot</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="chat-icon">
+        <i class="fas fa-comment-alt" style="color: white;"></i>
+    </div>
+    <div id="chat-lottie"></div>
+
+    <div id="chat-container">
+        <div id="chat-header-container">
+            <div id="chat-header">
+                <div id="logo">
+                    <img src="logo.png" alt="Logo" />
+                </div>
+                <button id="closeChat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Use an ID so we can set dynamic text here -->
+            <h2 id="dynamic-greeting">Hello!👋<br>How can we help you today?</h2>
+        </div>
+
+        <div id="server-status">
+            <i class="fas fa-info-circle"></i> Connected to server
+        </div>
+
+        <div id="chatbox">
+            <div id="messages"></div>
+            <div class="email-form">
+                <input type="text" id="userName" placeholder="Your name">
+                <input type="email" id="userEmail" placeholder="Your email">
+                <button id="saveContactBtn">Start Chat</button>
+                <div class="email-success" id="emailSuccess">
+                    <i class="fas fa-check-circle" style="vertical-align: middle; margin-right: 4px;"></i>
+                    Thank you for providing your contact information!
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-input-section">
+            <div id="file-preview"></div> <!-- File preview container -->
+            <div id="input-container">
+                <input type="text" id="userInput" placeholder="Type your message...">
+
+                <!-- Label acts as a clickable file upload button -->
+                <label for="fileInput" id="uploadButton">
+                    <i class="fas fa-paperclip"></i>
+                </label>
+
+                <!-- Hidden file input -->
+                <input type="file" id="fileInput" style="display: none;">
+
+                <button id="sendButton">
+                    <i class="fas fa-paper-plane" style="vertical-align: middle; margin-right: 4px;"></i>
+                </button>
+            </div>
+        </div>
+
+
+        <div id="footer-tabs">
+            <div id="home-tab" class="footer-tab active" onclick="switchTab('home')">
+                <i class="fas fa-home"></i>
+            </div>
+            <div id="chat-tab" class="footer-tab" onclick="switchTab('chat')">
+                <i class="fas fa-comment-alt"></i>
+            </div>
+            <div id="realtime-tab" class="footer-tab" onclick="switchTab('realtime')">
+                <i class="fas fa-headset"></i>
+            </div>
+            <div id="help-tab" class="footer-tab" onclick="switchTab('help')">
+                <i class="fas fa-question-circle"></i>
+            </div>
+        </div>
+
+        <div id="branding">
+            ©2025 Dunefox
+        </div>
+    </div>
+
+    <!-- Your original external scripts -->
+    <script type="module" src="./js/script.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <!-- Inline script to dynamically set greeting -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const hour = new Date().getHours();
+            let greeting = '';
+
+            if (hour < 12) {
+                greeting = 'Good Morning';
+            } else if (hour < 18) {
+                greeting = 'Good Afternoon';
+            } else {
+                greeting = 'Good Evening';
+            }
+
+            const greetingElement = document.getElementById('dynamic-greeting');
+            if (greetingElement) {
+                greetingElement.innerHTML = greeting + "!👋<br>How can we help you today?";
+            }
+        });
+    </script>
+</body>
+
+</html>

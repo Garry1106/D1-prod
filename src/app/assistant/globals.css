@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+  @apply grid grid-rows-[auto_1fr_auto] grid-cols-[250px_1fr] h-screen overflow-hidden;
+}
+
+.sidebar {
+  @apply bg-[#2c2f33] text-white p-4 flex flex-col gap-4 row-span-full;
+}
+
+.logo {
+  @apply text-xl font-bold mb-8;
+}
+
+.nav ul {
+  @apply list-none p-0 m-0 flex flex-col gap-4;
+}
+
+.nav ul li a {
+  @apply text-white no-underline text-base;
+}
+
+.nav ul li a:hover {
+  @apply underline;
+}
+
+.mainContent {
+  @apply col-span-1 row-span-2 p-4 overflow-y-auto bg-[#151515];
+}
+
+.footer {
+  @apply bg-white border-t border-gray-300 p-2 flex items-center gap-2;
+}
+
+.input {
+  @apply flex-grow p-2 border border-gray-300 rounded text-base;
+}
+
+.sendButton {
+  @apply bg-blue-500 text-white border-none py-2 px-4 rounded cursor-pointer;
+}
+
+.sendButton:hover {
+  @apply bg-blue-700;
+}
+
+
+/* global.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: "Inter", Arial, sans-serif;
+}
+
+/* Sidebar styling */
+.sidebar {
+  @apply bg-gray-800 text-white p-4 flex flex-col;
+}
+
+/* Utility classes for active states */
+.active {
+  @apply bg-blue-700;
+}
+
+/* Chat area */
+.chatDetails {
+  @apply overflow-y-auto;
+}
+
+/* Buttons */
+.button {
+  @apply bg-blue-500 text-white px-4 py-2 rounded;
+}
+.button:hover {
+  @apply bg-blue-600;
+}

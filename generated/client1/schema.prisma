@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client1"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL1") // MongoDB connection string
+}
+
+model User {
+  userId       String    @id @default(auto()) @map("_id") @db.ObjectId // MongoDB ObjectId as the primary key
+  clerkId      String    @unique // Unique Clerk ID for user identification
+  emailId      String    @unique // Unique email ID for the user
+  isSubscribed Boolean   @default(false) // Subscription status
+  name         String? // New optional name field
+  products     Product[] // One-to-many relationship with Product
+  createdAt    DateTime  @default(now()) // Timestamp for creation
+  updatedAt    DateTime  @updatedAt // Timestamp for last update
+}
+
+model Product {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId // MongoDB ObjectId as the primary key
+  name        String // Product name
+  description String? // Optional product description
+  price       Float // Product price
+  currency    String? // New optional currency field
+  userId      String  @db.ObjectId // Foreign key to User, storing userId as ObjectId
+  clerkId     String  @db.String // Clerk ID for the product, representing the Clerk ID for the user
+  User        User    @relation(fields: [userId], references: [userId]) // Relation to User model
+}
