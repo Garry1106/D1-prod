@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate --schema=./prisma/schema1.prisma && prisma generate --schema=./prisma/schema2.prisma",
-    "vercel-build": "prisma generate --schema=./prisma/schema1.prisma && prisma generate --schema=./prisma/schema2.prisma && next build",
+    "vercel-build": "prisma generate --schema=./prisma/schema1.prisma && prisma generate --schema=./prisma/schema2.prisma && prisma migrate deploy && next build",
     "prisma:generate": "prisma generate --schema=./prisma/schema1.prisma  && prisma generate --schema=./prisma/schema2.prisma"
   },
   "dependencies": {
