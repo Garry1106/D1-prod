@@ -9,4 +9,4 @@ export const client2 = globalThis.prisma2 || new PrismaClient({
   log: ['query', 'error', 'warn'],
 });
 
-if (process.env.NODE_ENV !== 'production') globalThis.prisma2 = client2;
+// if (process.env.NODE_ENV !== 'production') globalThis.prisma2 = client2;
