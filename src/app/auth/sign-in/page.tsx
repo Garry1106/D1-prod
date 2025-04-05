@@ -58,6 +58,7 @@ function SignInComponent() {
                 type="email"
                 placeholder="Enter your email"
                 className="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EB6C33] focus:border-transparent"
+                autoComplete='off'
               />
               <ErrorMessage
                 errors={errors}
@@ -74,6 +75,7 @@ function SignInComponent() {
                 type="password"
                 placeholder="Enter your password"
                 className="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EB6C33] focus:border-transparent"
+                autoComplete='off'
               />
               <ErrorMessage
                 errors={errors}
