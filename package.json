@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate --schema=./prisma/schema1.prisma && prisma generate --schema=./prisma/schema2.prisma",
-    "vercel-build": "node prisma-generate.js && next build"
+    "vercel-build": "prisma generate --schema=./prisma/schema1.prisma && prisma generate --schema=./prisma/schema2.prisma && next build",
+    "prisma:generate": "prisma generate --schema=./prisma/schema1.prisma  && prisma generate --schema=./prisma/schema2.prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.750.0",
