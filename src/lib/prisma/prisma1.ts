@@ -8,5 +8,5 @@ export const client1 = globalThis.prisma || new PrismaClient({
   log: ['query', 'error', 'warn'],
 });
 
-if (process.env.NODE_ENV !== 'production') globalThis.prisma = client1;
+// if (process.env.NODE_ENV !== 'production') globalThis.prisma = client1;
 
