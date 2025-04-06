@@ -129,7 +129,7 @@ export const WebAdditionalForm: React.FC<WebAdditionalFormProps> = ({ onNext, on
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="logo">Upload Logo</Label>
-                <Input id="logo" type="file" onChange={handleLogoChange} accept="image/*" />
+                <Input id="logo" type="file" onChange={handleLogoChange} accept="image/*" autoComplete='off'/>
               </div>
 
               <div className="space-y-2">
@@ -156,6 +156,7 @@ export const WebAdditionalForm: React.FC<WebAdditionalFormProps> = ({ onNext, on
                     value={newQuickButton}
                     onChange={(e) => setNewQuickButton(e.target.value)}
                     placeholder="Enter quick button text"
+                    autoComplete='off'
                   />
                   <Button onClick={handleAddQuickButton} className='bg-[#EB6C33] hover:bg-[#f88753]'>Add</Button>
                 </div>
@@ -168,11 +169,13 @@ export const WebAdditionalForm: React.FC<WebAdditionalFormProps> = ({ onNext, on
                     value={newFaq.question}
                     onChange={(e) => setNewFaq({ ...newFaq, question: e.target.value })}
                     placeholder="Enter question"
+                    autoComplete='off'
                   />
                   <Input
                     value={newFaq.answer}
                     onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })}
                     placeholder="Enter answer"
+                    autoComplete='off'
                   />
                   <Button onClick={handleAddFaq} disabled={faqs.length >= 5} className='bg-[#EB6C33] hover:bg-[#f88753]'>
                     Add FAQ

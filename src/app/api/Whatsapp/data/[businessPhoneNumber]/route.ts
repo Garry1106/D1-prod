@@ -4,10 +4,10 @@ import util from 'util';
 import connectToDatabase, { ensureCollections, getTenantDatabase } from "@/lib/mongodb";
 
 const REDIS_CONFIG: RedisOptions = {
-  host: 'localhost',
-  port: 6379,
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379'),
   retryStrategy: (times: number) => Math.min(times * 50, 2000),
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: 5,
 };
 
 let redisClient: Redis | null = null;
