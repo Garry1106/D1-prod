@@ -20,6 +20,7 @@ interface ChatProps {
   waId: string;
   businessPhoneNumber: string;
   onToggleRealTime?: (isRealTime: boolean) => Promise<void>;
+  initialRealTimeMode?: boolean;
 }
 
 const Chat: React.FC<ChatProps> = ({
@@ -28,34 +29,62 @@ const Chat: React.FC<ChatProps> = ({
   waId,
   businessPhoneNumber,
   onToggleRealTime,
+  initialRealTimeMode = false,
 }) => {
-  const [isClient, setIsClient] = useState(false);
-  const [isRealTime, setIsRealTime] = useState(false);
+  // Define isClient directly without state to avoid re-render cycle
+  const isClientRef = useRef(false);
+  
+  if (typeof window !== 'undefined' && !isClientRef.current) {
+    isClientRef.current = true;
+  }
+  
+  const [isRealTime, setIsRealTime] = useState(initialRealTimeMode);
   const [newMessage, setNewMessage] = useState<string>("");
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [selectedEmployee, setSelectedEmployee] = useState<string>(""); // State for selected employee
+  
+  const [loadingMode, setLoadingMode] = useState<boolean>(true);
   const { tenantConfig } = useTenantConfig();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-
-  // Hardcoded values (replace with actual data)
-  const [waIdState] = useState<string>("");
-  const [phoneNumberId] = useState<any>(tenantConfig?.phoneNumberId);
-  const [businessPhoneNumberState] = useState<any>(tenantConfig?.displayPhoneNumber);
-
   
-
+  // Store waId and config values in refs to prevent dependency cycles
+  const waIdRef = useRef(waId);
+  const phoneNumberIdRef = useRef(tenantConfig?.phoneNumberId);
+  const businessPhoneNumberStateRef = useRef(tenantConfig?.displayPhoneNumber);
+  
+  // Log initial values once on mount
+  const hasLoggedRef = useRef(false);
+  
   useEffect(() => {
-    setIsClient(true);
-    console.log("Initial waId:", waId);
-    console.log("Initial phoneNumberId:", phoneNumberId);
-    console.log("Initial businessPhoneNumberState:", businessPhoneNumberState);
-  }, []);
+    // Update refs when props change
+    waIdRef.current = waId;
+    
+    // Log initial values only once
+    if (!hasLoggedRef.current && waId) {
+      console.log("Initial waId:", waId);
+      console.log("Initial phoneNumberId:", phoneNumberIdRef.current);
+      console.log("Initial businessPhoneNumberState:", businessPhoneNumberStateRef.current);
+      hasLoggedRef.current = true;
+    }
+    
+    // Fetch the response mode when waId changes
+    if (waId) {
+      fetchResponseMode(waId);
+    }
+  }, [waId]);
+  
+  // Update config refs when tenantConfig changes
+  useEffect(() => {
+    if (tenantConfig) {
+      phoneNumberIdRef.current = tenantConfig.phoneNumberId;
+      businessPhoneNumberStateRef.current = tenantConfig.displayPhoneNumber;
+    }
+  }, [tenantConfig]);
 
+  // Scroll to bottom when messages change
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
@@ -63,7 +92,35 @@ const Chat: React.FC<ChatProps> = ({
         behavior: "smooth",
       });
     }
-  }, [messages]);
+  }, []);
+
+  // Fetch the current response mode from the database
+  const fetchResponseMode = async (waId: string) => {
+    try {
+      setLoadingMode(true); // Start loading
+  
+      const response = await fetch("/api/Whatsapp/get-response-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          waId,
+          businessPhoneNumber: businessPhoneNumber || businessPhoneNumberStateRef.current,
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        setIsRealTime(data.responseMode === "manual");
+        console.log(`Response mode for ${waId}: ${data.responseMode}`);
+      } else {
+        console.error("Failed to fetch response mode");
+      }
+    } catch (error) {
+      console.error("Error fetching response mode:", error);
+    } finally {
+      setLoadingMode(false); // Done loading
+    }
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -78,59 +135,13 @@ const Chat: React.FC<ChatProps> = ({
     setShowEmojiPicker(false);
   };
 
-  // const updateResponseMode = async (mode: "manual" | "auto") => {
-  //   try {
-  //     const response = await fetch("/api/Whatsapp/update-response-mode", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         waId: waIdState,
-  //         responseMode: mode,
-  //         businessPhoneNumber: businessPhoneNumberState,
-  //       }),
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorDetails = await response.json();
-  //       console.error("Error updating response mode:", errorDetails);
-  //       return;
-  //     }
-
-  //     // Define the agent message based on the mode
-  //     const agentMessage =
-  //       mode === "manual"
-  //         ? "Agent at your service...."
-  //         : "Continue with our AI";
-
-  //     const msg = await fetch("/api/Whatsapp/send-message", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         waId: waId,
-  //         phoneNumberId,
-  //         businessPhoneNumber: businessPhoneNumberState,
-  //         message: agentMessage,
-  //       }),
-  //     });
-
-  //     if (!msg.ok) {
-  //       const errorDetails = await msg.json();
-  //       console.error("Error sending message:", errorDetails);
-  //       return;
-  //     }
-
-  //     console.log(`Response mode updated to ${mode} for user ${waIdState}`);
-  //   } catch (error) {
-  //     console.error("Error updating response mode:", error);
-  //   }
-  // };
-
   const handleToggle = async () => {
-    setIsRealTime(!isRealTime);
+    const newIsRealTime = !isRealTime;
+    setIsRealTime(newIsRealTime);
     
     // Notify parent component if onToggleRealTime is provided
     if (onToggleRealTime) {
-      await onToggleRealTime(!isRealTime);
+      await onToggleRealTime(newIsRealTime);
     }
   };
 
@@ -164,13 +175,13 @@ const Chat: React.FC<ChatProps> = ({
 
       // Prepare the request body
       const requestBody: any = {
-        waId: waId,
-        phoneNumberId,
-        businessPhoneNumber: businessPhoneNumberState,
+        waId: waIdRef.current,
+        phoneNumberId: phoneNumberIdRef.current,
+        businessPhoneNumber: businessPhoneNumber || businessPhoneNumberStateRef.current,
         message: newMessage.trim(), // Include the text message
       };
 
-      console.log("body in send message",requestBody)
+      console.log("body in send message", requestBody);
 
       // Add media details if a file is selected
       if (selectedFile) {
@@ -190,8 +201,7 @@ const Chat: React.FC<ChatProps> = ({
         body: JSON.stringify(requestBody),
       });
 
-      console.log(response)
-
+      console.log(response);
       
       if (!response.ok) {
         console.error("Failed to send message");
@@ -291,6 +301,9 @@ const Chat: React.FC<ChatProps> = ({
     return null;
   };
 
+  // Check if we're on the client side
+  const isClient = isClientRef.current;
+
   return (
     <div className="flex-1 h-screen flex flex-col relative">
       {userName ? (
@@ -299,12 +312,14 @@ const Chat: React.FC<ChatProps> = ({
           <div className="flex items-center justify-between p-4 border-b border-gray-300 bg-white shadow-lg">
             <div className="flex items-center space-x-2 animate-fadeIn">
               <div className="relative w-10 h-10">
-                <Image
-                  src="https://via.placeholder.com/32"
-                  alt="User Avatar"
-                  fill
-                  className="rounded-full border-2 border-white shadow-lg"
-                />
+                {isClient && (
+                  <Image
+                    src="https://via.placeholder.com/32"
+                    alt="User Avatar"
+                    fill
+                    className="rounded-full border-2 border-white shadow-lg"
+                  />
+                )}
               </div>
               <span className="text-lg font-bold text-black drop-shadow-sm">
                 {userName}
@@ -312,7 +327,6 @@ const Chat: React.FC<ChatProps> = ({
             </div>
             <div className="flex items-center space-x-2 animate-fadeIn">
               
-
               {/* Real-time toggle button */}
               <label className="flex items-center cursor-pointer space-x-2">
                 <span className="text-black font-medium">Go RealTime</span>
@@ -321,6 +335,7 @@ const Chat: React.FC<ChatProps> = ({
                     type="checkbox"
                     checked={isRealTime}
                     onChange={handleToggle}
+                    disabled={loadingMode}
                     className="sr-only"
                   />
                   <div
@@ -376,7 +391,6 @@ const Chat: React.FC<ChatProps> = ({
                         borderTopLeftRadius: msg.fromSelf ? "0.5rem" : "1.5rem",
                       }}
                     >
-                      {/* 5. Show the sanitized text: */}
                       <p className="whitespace-pre-wrap break-words">
                         {removeDriveLinkFromText(msg.text)}
                       </p>

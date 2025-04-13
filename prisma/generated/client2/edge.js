@@ -133,7 +133,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\Legion\\Desktop\\d-prod-mukulnew2\\prisma\\generated\\client2",
+      "value": "C:\\Users\\Legion\\Desktop\\d-prod-Garry\\d-prod-Garry\\prisma\\generated\\client2",
       "fromEnvVar": null
     },
     "config": {
@@ -147,7 +147,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\Legion\\Desktop\\d-prod-mukulnew2\\prisma\\schema2.prisma",
+    "sourceFilePath": "C:\\Users\\Legion\\Desktop\\d-prod-Garry\\d-prod-Garry\\prisma\\schema2.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

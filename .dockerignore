@@ -1,7 +1,49 @@
-Dockerfile
-.dockerignore
+# Basic exclusions
+.git
+.github
 node_modules
 npm-debug.log
-README.md
-.next
-.git
+yarn-debug.log
+yarn-error.log
+
+# Next.js build output (not needed in build context)
+.next/cache
+
+# Development files
+.vscode
+.idea
+*.log
+.DS_Store
+*.swp
+*.swo
+
+# Testing
+coverage
+__tests__
+**/__tests__/
+**/*.test.*
+**/*.spec.*
+jest.config.*
+
+# Documentation
+LICENSE
+docs
+
+# Misc
+.vercel
+tmp
+.tmp
+temp
+
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Environment (except .env for production)
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.staging

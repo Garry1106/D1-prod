@@ -1,6 +1,8 @@
 'use server';
 
 import { client1 } from "@/lib/prisma/prisma1";
+import { X } from "lucide-react";
+import { MongoClient } from "mongodb";
 
 // Fetch user details by clerkId
 export const getUserDetails = async (clerkId: string) => {
@@ -153,3 +155,40 @@ export const getUserProducts = async (clerkId: string) => {
     throw new Error("Failed to fetch products for the user");
   }
 };
+
+
+
+export async function getWebUser(clerkId: string | any) {
+  const uri = 'mongodb+srv://shitolemukul47:ozT5QTChtW2EhEhK@clusterdunefox.myjice7.mongodb.net/?retryWrites=true&w=majority&appName=ClusterDuneFox'; // Replace with your MongoDB connection string
+  const client = new MongoClient(uri);
+  
+  try {
+    // Connect to MongoDB
+    await client.connect();
+
+    // Access the "business" database and "users" collection
+    const database = client.db('business');
+    const collection = database.collection('users');
+    
+    const tenantId = clerkId
+    // Find the user with the provided clerkId
+    const user = await collection.findOne({ clerkId });
+    console.log(user);
+    
+    // Serialize the MongoDB document before returning
+    if (user) {
+      // Convert MongoDB ObjectId to string and ensure all fields are serializable
+      return JSON.parse(JSON.stringify({
+        ...user,
+        _id: user._id.toString()
+      }));
+    }
+    
+    return null;
+  } catch (err) {
+    console.error('Error retrieving user:', err);
+    throw new Error('Failed to retrieve user data');
+  } finally {
+    await client.close();
+  }
+}

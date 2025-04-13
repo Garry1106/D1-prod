@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -8,8 +8,11 @@ import { useUserDetails } from '@/hooks/user/use-user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { getWebUser } from '@/actions/user';
 
 type Props = {};
+
+
 
 const messages = [
   { sender: 'John Doe', message: 'Hey, how are you?', timestamp: '2024-11-12 10:00 AM' },
@@ -22,9 +25,62 @@ export default function WhatsAppDashboard({ }: Props) {
   const router = useRouter();
   const [isClient, setIsClient] = useState(true);
   const [hasProduct, setHasProduct] = useState<boolean | null>(true);
+  const [userData, setUserData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { hasPurchasedProduct, userDetails } = useUserDetails();
 
-  if (hasProduct === false) {
+  useEffect(() => {
+    // Set isClient to true when component mounts (client-side)
+    setIsClient(true);
+    
+    // Get the clerkId from your user context or authentication system
+    const fetchUserData = async () => {
+      try {
+        // Get clerkId from userDetails if available, otherwise use a default or handle appropriately
+        const clerkId = userDetails?.clerkId;
+        
+        if (!clerkId) {
+          setError('No user ID available');
+          setLoading(false);
+          return;
+        }
+        
+        const response = await getWebUser(clerkId)
+
+        console.log("Response in Webbot",response)
+
+       
+
+        // setUserData(response);
+        // console.log(userData)
+       
+        
+        // Check if user has purchased the WhatsApp product
+        // This could be determined from the userData or from the useUserDetails hook
+        
+      } catch (err) {
+        console.error('Failed to fetch user data:', err);
+        setError('Failed to fetch user data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userDetails, hasPurchasedProduct]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  
+
+  if (!isClient) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-white p-4">
         <Card className="max-w-md w-full p-6 space-y-6 shadow-lg">
@@ -86,7 +142,9 @@ export default function WhatsAppDashboard({ }: Props) {
             <LaptopMinimal className="w-6 h-6 text-blue-600" />
             <h1 className="text-3xl font-semibold text-blue-600">WebChatbot Dashboard</h1>
           </div>
-          <p className="text-lg text-gray-700 mt-2 font-bold">Welcome back, User</p>
+          <p className="text-lg text-gray-700 mt-2 font-bold">
+            Welcome back, {userData?.name || 'User'}
+          </p>
           <p className="text-base text-gray-600 mt-2">Get an overview of your WhatsApp activity, messages, and user engagement.</p>
         </div>
       </motion.header>

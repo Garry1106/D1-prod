@@ -1,190 +1,74 @@
-# Use Debian-based image for compatibility
-FROM node:18-bullseye AS base
+# Simple development Dockerfile - with glibc for ONNX compatibility
+FROM node:20-slim AS builder
 
-# Install dependencies only when needed
-FROM base AS deps
+# Install necessary dependencies for Prisma and ONNX Runtime
+RUN apt-get update && apt-get install -y \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Install required libraries
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libstdc++6 \
-    libgcc1 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy package files first
+COPY package*.json ./
 
-# Install dependencies with network resilience settings
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-
-# Copy Prisma schema files if they exist
-COPY prisma ./prisma
-
-# Set network timeout and disable postinstall initially
-ENV NPM_CONFIG_NETWORK_TIMEOUT=300000
-ENV NPM_CONFIG_IGNORE_SCRIPTS=true
+# Copy prisma directory to make schema files available during install
+COPY prisma/ ./prisma/
 
 # Install dependencies
-RUN \
-  if [ -f yarn.lock ]; then \
-    yarn config set network-timeout 300000 && \
-    yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then \
-    npm config set fetch-retries 5 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then \
-    corepack enable pnpm && \
-    pnpm i --frozen-lockfile --network-timeout 300000; \
-  else \
-    echo "Lockfile not found." && exit 1; \
-  fi
+RUN npm install
 
-# Now generate Prisma client with postinstall scripts enabled
-ENV NPM_CONFIG_IGNORE_SCRIPTS=false
-
-# Install Prisma CLI globally
-RUN npm install -g prisma
-
-# Create placeholder schema files if they don't exist
-RUN mkdir -p prisma && \
-    if [ ! -f prisma/schema.prisma ]; then \
-      echo 'datasource db { provider = "postgresql" url = env("DATABASE_URL") }' > prisma/schema.prisma; \
-    fi
-
-# Generate Prisma client
-RUN \
-  if [ -f prisma/schema.prisma ]; then \
-    prisma generate --schema=./prisma/schema.prisma || echo "Failed to generate schema, continuing"; \
-  fi
-
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-
-# Copy node_modules
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy potential Prisma generated files (with fallback)
-RUN mkdir -p ./node_modules/.prisma
-
-# Copy all source code
+# Copy remaining project files
 COPY . .
 
-# Install Prisma CLI and generate client directly in this stage as well
-RUN npm install -g prisma && \
-    if [ -f prisma/schema.prisma ]; then \
-      prisma generate --schema=./prisma/schema.prisma || echo "Failed to generate schema, continuing"; \
-    fi
+# Generate Prisma clients manually
+RUN npx prisma generate --schema=./prisma/schema1.prisma
+RUN npx prisma generate --schema=./prisma/schema2.prisma
 
-# Set environment variable to skip type checking
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS="--max-old-space-size=8192"
+# Build the Next.js application (this creates the standalone folder)
+RUN npm run build
 
-# Fix issues with Next.js config
-RUN if [ -f next.config.ts ]; then \
-      sed -i 's/swcMinify: true,//g' next.config.ts || echo "Failed to update next.config.ts"; \
-    fi && \
-    if [ -f next.config.js ]; then \
-      sed -i 's/swcMinify: true,//g' next.config.js || echo "Failed to update next.config.js"; \
-    fi
+FROM node:20-slim AS runner
 
-# Create a proper PrismaClient fallback
-RUN mkdir -p ./node_modules/@prisma/client && \
-    if [ ! -f ./node_modules/@prisma/client/index.js ]; then \
-      echo 'class PrismaClient { constructor() {} } module.exports = { PrismaClient };' > ./node_modules/@prisma/client/index.js; \
-    fi && \
-    if [ ! -f ./node_modules/@prisma/client/index.d.ts ]; then \
-      mkdir -p ./node_modules/@prisma/client && \
-      echo 'export declare class PrismaClient { constructor(options?: any); }' > ./node_modules/@prisma/client/index.d.ts; \
-    fi
-
-# Create a fallback db.ts file if the current one is causing issues
-RUN mkdir -p ./src/lib && \
-    echo '// Fallback db.ts file created during build\n\
-class PrismaClientFallback {\n\
-  constructor() {}\n\
-  async $connect() { return Promise.resolve() }\n\
-  async $disconnect() { return Promise.resolve() }\n\
-}\n\
-\n\
-const prisma = new PrismaClientFallback();\n\
-export default prisma;\n\
-export { PrismaClientFallback as PrismaClient };' > ./src/lib/db.ts.fallback
-
-# Attempt to replace the db.ts file if build fails
-RUN \
-  cp ./src/lib/db.ts ./src/lib/db.ts.original || echo "No original db.ts file"
-
-# Build Next.js with fallbacks and completely disabled type checking
-RUN \
-  if [ -f yarn.lock ]; then \
-    SKIP_TYPECHECK=true yarn run build --no-lint || \
-    NEXT_TYPECHECK=false yarn run build --no-lint || \
-    NODE_ENV=production SKIP_TYPECHECK=true yarn run build --no-lint || \
-    cp ./src/lib/db.ts.fallback ./src/lib/db.ts && yarn run build --no-lint || \
-    yarn run build --no-lint || exit 0; \
-  elif [ -f package-lock.json ]; then \
-    SKIP_TYPECHECK=true npm run build -- --no-lint || \
-    NEXT_TYPECHECK=false npm run build -- --no-lint || \
-    NODE_ENV=production SKIP_TYPECHECK=true npm run build -- --no-lint || \
-    cp ./src/lib/db.ts.fallback ./src/lib/db.ts && npm run build -- --no-lint || \
-    npm run build -- --no-lint || exit 0; \
-  elif [ -f pnpm-lock.yaml ]; then \
-    corepack enable pnpm && \
-    SKIP_TYPECHECK=true pnpm run build --no-lint || \
-    NEXT_TYPECHECK=false pnpm run build --no-lint || \
-    NODE_ENV=production SKIP_TYPECHECK=true pnpm run build --no-lint || \
-    cp ./src/lib/db.ts.fallback ./src/lib/db.ts && pnpm run build --no-lint || \
-    pnpm run build --no-lint || exit 0; \
-  else \
-    echo "Lockfile not found." && exit 1; \
-  fi
-
-# Production image, copy all the files and run socket server
-FROM base AS runner
 WORKDIR /app
 
-# Add required runtime libraries
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libstdc++6 \
-    libgcc1 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install necessary dependencies for running ts-node
+RUN apt-get update && apt-get install -y \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
 
-ENV NODE_ENV=production
-
-# Create a non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Create certs directory
-RUN mkdir -p /app/certs
-
-# Copy all files from builder stage
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
+# Copy the standalone output directory from Next.js build
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/server.mts ./server.mts
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
-COPY --from=builder /app/lib ./lib
+
+# Copy package.json and package-lock.json for ts-node dependencies
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/tsconfig.json ./
+
+# Copy the server.mts file
+COPY --from=builder /app/server.mts ./
+
+# Copy the prisma directory and node_modules for ts-node and prisma
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules ./node_modules
 
-# Copy specific environment file
-COPY --from=builder /app/.env ./.env
-
-# Ensure ts-node is installed globally
-RUN npm install -g ts-node typescript @types/node
-
-# Create required directories and set permissions
-RUN mkdir -p /app/uploads /app/node_modules/@xenova/transformers/.cache \
-    && chown -R nextjs:nodejs /app/uploads /app/node_modules/@xenova/transformers/.cache \
-    && chown -R nextjs:nodejs /app
-
-USER nextjs
-
-# Expose the application port
+# Expose port
 EXPOSE 3000
 
-ENV NODE_OPTIONS="--loader ts-node/esm --experimental-specifier-resolution=node --trace-warnings --no-warnings"
+# Set environment variable for hosting
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
+# By default, use the socket server
+ENV USE_SOCKET="true"
 
-# Start the socket server
-CMD ["ts-node", "--esm", "server.mts"]
+# Entry script with switch
+RUN echo '#!/bin/sh\n\
+if [ "$USE_SOCKET" = "true" ]; then\n\
+  echo "Starting with custom socket server..."\n\
+  NODE_OPTIONS="--loader ts-node/esm --trace-warnings --no-warnings" node_modules/.bin/ts-node server.mts\n\
+else\n\
+  echo "Starting with standard Next.js server..."\n\
+  node server.js\n\
+fi' > start.sh && chmod +x start.sh
+
+CMD ["./start.sh"]

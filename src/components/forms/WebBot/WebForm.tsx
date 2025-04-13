@@ -155,6 +155,7 @@ export const WebForm = ({ onNext }: BusinessFormProps) => {
             }
             placeholder="Enter your business name"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-flame-500 focus:ring-flame-500 sm:text-sm"
+            autoComplete="off"
             required
           />
         </div>
@@ -209,6 +210,7 @@ export const WebForm = ({ onNext }: BusinessFormProps) => {
             }
             placeholder="Enter your bot name"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-flame-500 focus:ring-flame-500 sm:text-sm"
+            autoComplete="off"
             required
           />
         </div>
@@ -233,6 +235,7 @@ export const WebForm = ({ onNext }: BusinessFormProps) => {
             }
             placeholder="https://example.com"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-flame-500 focus:ring-flame-500 sm:text-sm"
+            autoComplete="off"
           />
           <p className="mt-1 text-xs text-gray-500">
             Enter your website URL to extract business information

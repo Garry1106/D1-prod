@@ -484,7 +484,7 @@ export default function ProfilePage() {
                 <div className="w-full sm:w-auto">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <Badge className="bg-[#41b658] text-white hover:bg-[#41b658]/90">
-                      {tenantConfig?.subscriptionLevel}
+                      {tenantConfig?.subscription?.subscriptionLevel}
                     </Badge>
                     <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm font-medium">
                       ID: {tenantConfig?.clerkId?.substring(0, 8)}...
@@ -665,7 +665,7 @@ export default function ProfilePage() {
                             <Field label="Country" value={tenantConfig?.country || ''} icon={<Globe size={18} />} />
                             <Field label="Currency"  value={tenantConfig?.currency || ''} icon={<CreditCard size={18} />} />
                             
-                            <Field label="Subscription Level" value={tenantConfig?.subscriptionLevel || ''} icon={<Database size={18} />} />
+                            <Field label="Subscription Level" value={tenantConfig?.subscription?.subscriptionLevel || ''} icon={<Database size={18} />} />
                           </div>
                           
                           <Separator className="my-6" />

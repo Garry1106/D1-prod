@@ -6,11 +6,12 @@
     "dev": "next dev",
     "dev:socket": "NODE_OPTIONS='--loader ts-node/esm --trace-warnings --no-warnings' ts-node server.mts",
     "build": "next build",
+    "build:socket": "next build && tsc --project tsconfig.server.json",
     "start": "next start",
+    "start:socket": "NODE_ENV=production node dist/server.mjs",
     "lint": "next lint",
     "postinstall": "prisma generate --schema=./prisma/schema1.prisma && prisma generate --schema=./prisma/schema2.prisma",
-    "vercel-build": "prisma generate --schema=./prisma/schema1.prisma && prisma generate --schema=./prisma/schema2.prisma && prisma migrate deploy && next build",
-    "prisma:generate": "prisma generate --schema=./prisma/schema1.prisma  && prisma generate --schema=./prisma/schema2.prisma"
+    "vercel-build": "prisma generate --schema=./prisma/schema1.prisma && prisma generate --schema=./prisma/schema2.prisma && next build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.750.0",
@@ -104,6 +105,7 @@
     "tailwind-merge": "^2.5.4",
     "textract": "^2.5.0",
     "ts-node": "^10.9.2",
+    "win-node-env": "^0.6.1",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
@@ -115,6 +117,7 @@
     "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18.2.22",
     "@types/react-dom": "^18.2.7",
+    "@types/uuid": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "15.0.2",
     "postcss": "^8",

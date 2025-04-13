@@ -7,8 +7,8 @@ export async function POST(req: Request) {
 
   try {
     // Parse the JSON body from the incoming request
-    const userData = await req.json();
-    console.log('Received user data:', userData);
+    const formData = await req.json();
+    console.log('Received user data:', formData);
 
     // Connect to MongoDB
     await client.connect();
@@ -28,8 +28,15 @@ export async function POST(req: Request) {
     // }
 
     // If no document with the same clerkId exists, insert the new user data
+
+    const userData = {
+      clerkId : formData.webForm.clerkId,
+      formData
+    }
+
+    console.log("Formdata in create user",userData)
     const result = await collection.insertOne(userData);
-    return NextResponse.json({ message: `New user inserted with _id: ${result.insertedId}` });
+    return NextResponse.json({ message: `New user inserted with _id: ${result.insertedId} ` });
   } catch (err) {
     console.error('Error inserting document:', err);
     return NextResponse.json({ error: 'Failed to insert user data' }, { status: 500 });
@@ -37,3 +44,4 @@ export async function POST(req: Request) {
     await client.close();
   }
 }
+

@@ -15,15 +15,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '50mb', // Increase to your desired limit
     },
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma'], // Add Prisma to external packages
-  },
-  
-  // Configure output file tracing for Prisma
-  outputFileTracing: true,
-  outputFileTracingRoot: process.cwd(),
-  outputFileTracingExcludes: {},
-  outputFileTracingIncludes: {
-    '/': ['prisma/**/*'], // Include Prisma files in the build output
   },
 
   // Optional: Add headers for security and performance
@@ -56,7 +47,6 @@ const nextConfig: NextConfig = {
       config.externals = [
         ...(config.externals || []),
         "@prisma/client",
-        "prisma", // Added prisma to externals
         "sharp",
         "onnxruntime-node", // Exclude onnxruntime-node from bundling
       ];

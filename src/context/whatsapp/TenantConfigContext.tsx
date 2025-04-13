@@ -3,40 +3,46 @@
 // context/TenantConfigContext.tsx
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 
-interface TenantConfig {
+ interface TenantConfig {
     _id: string;
     clerkId: string;
     businessName: string;
-    waba_id:string;
+    waba_id: string;
     displayPhoneNumber: string;
     phoneNumberId: string;
     accessToken: string;
     appId: string;
     appSecret: string;
-    selectOption: string;
+    botName: string;
+    language: string;
+    role: string;
+    ttsGender: string;
     country: string;
     currency: string;
-    subscriptionLevel: string;
-    price: string;
-    features: {
-        text: boolean;
-        tts: boolean;
-        aiResponse: boolean;
-        image: boolean;
-        audio: boolean;
-        document: boolean;
-        video: boolean;
-        sticker: boolean;
-        interactive: boolean;
-        retrieval: boolean;
-    };
-    limits: {
-        messagesCount: number;
-        ttsCount: number;
-        imagesCount: number;
-        audiosCount: number;
-        documentsCount: number;
-        videosCount: number;
+    subscription: {
+        subscriptionLevel: string;
+        subscriptionExpiry: string;
+        price: string;
+        features: {
+            text: boolean;
+            tts: boolean;
+            aiResponse: boolean;
+            image: boolean;
+            audio: boolean;
+            document: boolean;
+            video: boolean;
+            sticker: boolean;
+            interactive: boolean;
+            retrieval: boolean;
+        };
+        limits: {
+            messagesCount: number;
+            ttsCount: number;
+            imagesCount: number;
+            audiosCount: number;
+            documentsCount: number;
+            videosCount: number;
+        };
     };
 }
 
